@@ -109,8 +109,9 @@ const ProductsPage = () => {
   },[watch("q")])
 
   return (
-    <div className="bg-[#eaedfa] py-9 min-h-[100vh]">
-      <div className="w-[90%] mx-auto">
+    <div className="py-[60px] min-h-[100vh]">
+      <div className="mx-auto">
+        <div className="mb-5 text-[27px] font-semibold">Products</div>
         <div className="grid grid-cols-2 lg:grid-cols-3 bg-white rounded-md mb-2 py-2 px-4 justify-between">
           <div className="grid grid-cols-2 gap-2 my-2">
             <Select
