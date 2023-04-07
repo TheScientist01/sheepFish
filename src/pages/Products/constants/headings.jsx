@@ -1,8 +1,9 @@
 import { RiDeleteBin6Line, RiSettings3Line } from "react-icons/ri";
 import Button from "../../../components/ui/Button";
 import { useDispatch } from "react-redux";
-import { deleteProductId } from "../../../redux/reducers/productReducer";
+import { deleteProductId, setEditProduct } from "../../../redux/reducers/productReducer";
 import StarRatings from 'react-star-ratings';
+import DefaultImage from '../../../assets/default-image.png'
 
 export const productsHeadings = () => {
   const dispatch = useDispatch();
@@ -20,13 +21,13 @@ export const productsHeadings = () => {
     },
     {
       name: "DESCRIPTION",
-      selector: (row) => row.description,
+      selector: (row) => row?.description ?? "-",
       sortable: true,
     },
     {
       name: "PRICE",
       selector: (row) => {
-        return `${row.price} $`;
+        return `${row.price ?? 0} $`;
       },
       sortable: true,
     },
@@ -36,26 +37,27 @@ export const productsHeadings = () => {
         return (
           <img
             className="h-[50px] m-2 rounded-lg"
-            src={row.images[row.images.length - 1]}
+            src={row.images ? row.images[row?.images?.length - 1] : DefaultImage}
           ></img>
         );
       },
     },
     {
       name: "RATING",
-      selector: (row) => {return(
-        <div><StarRatings rating={row.rating} numberOfStars={5} starDimension="15" starSpacing="1px" starRatedColor="#fde047" /></div>
+      selector: (row) => {
+        return(
+        <div><StarRatings rating={row?.rating} numberOfStars={5} starDimension="15" starSpacing="1px" starRatedColor="#fde047" /></div>
       )},
       // sortable: true,
     },
     {
       name: "STOCK",
-      selector: (row) => row.stock,
+      selector: (row) => row?.stock ?? 0,
       sortable: true,
     },
     {
       name: "CATEGORY",
-      selector: (row) => row.category,
+      selector: (row) => row?.category ?? "-",
       sortable: true,
     },
     {
@@ -65,7 +67,7 @@ export const productsHeadings = () => {
           <div className="flex gap-2">
             <Button
               onClick={() => {
-                dispatch(deleteProductId(row.id));
+                dispatch(setEditProduct(row));
               }}
               className="border border-gray-300 h-fit p-1.5 hover:bg-gray-100"
             >

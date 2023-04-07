@@ -21,7 +21,7 @@ const HomePage = () => {
             curated collection and unbeatable prices.
           </div>
         </div>
-        <div className="flex mx-auto rounded-[50px] w-[450px] h-[600px] bg-gradient-to-tr from-purple-900 via-blue-400 to-pink-600">
+        <div style={{transform:"rotateY(180deg)"}} className="flex mx-auto rounded-[50px] w-[450px] h-[600px] bg-gradient-to-tr from-purple-900 via-blue-400 to-pink-600">
           <img
             src={shop}
             alt="Mobile"

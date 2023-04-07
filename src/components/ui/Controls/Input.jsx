@@ -52,6 +52,7 @@ const Input = ({
       <ControlLayout {...propsLayout}>
         <input
           type={type}
+          step={0.01}
           maxLength={size?.toString()}
           autoFocus={autoFocus}
           placeholder={placeholder}

@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useFetching from "../../hooks/useFetching";
 import {
-  addProduct,
+  addAProduct,
   deleteProductId,
   removeProduct,
   selectDeleteId,
+  selectEditProduct,
   selectProducts,
   setProducts,
 } from "../../redux/reducers/productReducer";
@@ -26,6 +27,8 @@ import { MdOutlineDownloadForOffline } from "react-icons/md";
 import Button from "../../components/ui/Button";
 import DeleteModal from "../../components/DeleteModal";
 import { excelExport } from "../../helpers";
+import { AiOutlinePlusCircle } from "react-icons/ai";
+import ProductsModal from "./components/ProductsModal";
 
 const ProductsPage = () => {
   const dispatch = useDispatch();
@@ -34,8 +37,15 @@ const ProductsPage = () => {
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState("");
 
-  const [deleteModal, setDeleteModal]=useState(false);
-  const deleteId=useSelector(selectDeleteId);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const deleteId = useSelector(selectDeleteId);
+
+  const editedProduct = useSelector(selectEditProduct);
+
+  const [productModal, setProductModal] = useState({
+    isActive: false,
+    mode: "",
+  });
 
   const {
     register,
@@ -70,10 +80,10 @@ const ProductsPage = () => {
     dispatch(setProducts(res));
   });
 
-  const handleDelete=async ()=>{
-    await deleteProduct(deleteId);
+  const handleDelete = async () => {
     dispatch(removeProduct(deleteId));
-  }
+    await deleteProduct(deleteId);
+  };
 
   const onSearch = (data) => {
     setCategory("");
@@ -90,23 +100,29 @@ const ProductsPage = () => {
     searchByCategories();
   }, [category]);
 
-  useEffect(()=>{
-    if(!!deleteId){
+  useEffect(() => {
+    if (!!deleteId) {
       setDeleteModal(true);
     }
   }, [deleteId]);
 
-  useEffect(()=>{
-    if(deleteModal===false){
-      dispatch(deleteProductId(""))
+  useEffect(() => {
+    if (Object.keys(editedProduct).length) {
+      setProductModal({ isActive: true, mode: "Edit" });
     }
-  },[deleteModal])
+  }, [editedProduct]);
 
-  useEffect(()=>{
-    if(watch("q")===""){
+  useEffect(() => {
+    if (deleteModal === false) {
+      dispatch(deleteProductId(""));
+    }
+  }, [deleteModal]);
+
+  useEffect(() => {
+    if (watch("q") === "") {
       fetchProducts();
     }
-  },[watch("q")])
+  }, [watch("q")]);
 
   return (
     <div className="py-[60px] min-h-[100vh]">
@@ -131,26 +147,44 @@ const ProductsPage = () => {
               />
             </form>
           </div>
-          <Button
-            className="ml-auto col-span-1 lg:col-span-2 my-auto border border-black text-black rounded-md"
-            iconLeft={<MdOutlineDownloadForOffline className="my-auto" />}
-            
-            onClick={()=>excelExport(products, "products.xlsx")}
-          >
-            Export
-          </Button>
+          <div className="flex gap-2 ml-auto col-span-1 lg:col-span-2 my-auto ">
+            <Button
+              className="border border-black rounded-md bg-purple-400 text-white"
+              iconLeft={<AiOutlinePlusCircle className="my-auto" />}
+              onClick={() => setProductModal({ isActive: true, mode: "Add" })}
+            >
+              Add
+            </Button>
+            <Button
+              className="border border-black text-black rounded-md"
+              iconLeft={<MdOutlineDownloadForOffline className="my-auto" />}
+              onClick={() => excelExport(products, "products.xlsx")}
+            >
+              Export
+            </Button>
+          </div>
         </div>
         <div className="rounded-lg">
-          <DataTables
-            data={products}
-            columns={productsHeadings()}
-            onRowClick={(product) => {
-              console.log(product.title);
-            }}
-          />
+          <DataTables data={products} columns={productsHeadings()} />
         </div>
       </div>
-      <DeleteModal isVisible={deleteModal} setIsVisible={setDeleteModal} text="You are going to delete this product" title={`product ${deleteId}`} handleDelete={handleDelete} />
+      <DeleteModal
+        isVisible={deleteModal}
+        setIsVisible={setDeleteModal}
+        text="You are going to delete this product"
+        title={`product ${deleteId}`}
+        handleDelete={handleDelete}
+      />
+      {productModal.isActive ? (
+        <ProductsModal
+          isVisible={productModal.isActive}
+          setIsVisible={(e) =>
+            setProductModal({ ...productModal, isActive: e })
+          }
+          defaultValues={productModal.mode === "Edit" && editedProduct}
+          mode={productModal.mode}
+        />
+      ) : null}
     </div>
   );
 };

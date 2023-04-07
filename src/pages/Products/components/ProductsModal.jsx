@@ -1,69 +1,129 @@
 import Modal from "../../../components/ui/Modal.jsx";
 import { useForm } from "react-hook-form";
 import useLoading from "../../../hooks/useLoading.jsx";
-import { useParams } from "react-router";
-import { useSelector } from "react-redux";
-import { selectUserId } from "../../../redux/reducers/userReducer.js";
 import { yupResolver } from "@hookform/resolvers/yup";
-import InputField from "../../ui/InputField.jsx";
-import InputError from "../../ui/InputError.jsx";
 import Button from "../../../components/ui/Button.jsx";
+import { addProduct, editProduct } from "../api/index.js";
+import Input from "../../../components/ui/Controls/Input.jsx";
+import { productValidationSchema } from "../validators/index.js";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addAProduct,
+  editAProduct,
+  selectEditProduct,
+  setEditProduct,
+} from "../../../redux/reducers/productReducer.js";
+import { useEffect } from "react";
+import { displayAlert } from "../../../redux/reducers/alertReducer.js";
 
 const ProductsModal = ({
   isVisible,
   setIsVisible,
   defaultValues,
   mode = "Add",
-  onEditSuccess,
-  onAddSuccess,
-  onAddFailed,
-  onEditFailed,
 }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(noteValidationSchema),
+    resolver: yupResolver(productValidationSchema),
     defaultValues: defaultValues,
   });
 
+  const dispatch = useDispatch();
+
   const onSubmit = (data) => {
-    addNoteRequest({ ...data, userId: +id });
+    addProductRequest(data);
   };
 
   const onEdit = (data) => {
-    editNoteRequest({ ...data, id: +defaultValues?.id });
+    editProductRequest(data);
   };
 
-  const [editNoteRequest, editRequestLoading] = useLoading({
+  const [editProductRequest, editRequestLoading] = useLoading({
     callback: async (data) => {
-      const note = await editNote(data.id, data);
-      onEditSuccess(data.id, data);
+      const product = await editProduct(data);
+      dispatch(editAProduct(data));
+      setIsVisible(false);
+      dispatch(setEditProduct({}));
+      dispatch(displayAlert({type:true, message: "Product was edited successfully"}))
     },
     onError: (error) => {
-      onEditFailed(error);
+      dispatch(displayAlert({type:false, message: "Product could not be edited"}))
     },
   });
 
-  const [addNoteRequest, requestLoading] = useLoading({
+  const [addProductRequest, requestLoading] = useLoading({
     callback: async (data) => {
-      const note = await addNote({ ...data, userId: id ? parseInt(id) : userId });
-      onAddSuccess(note);
+      const product = await addProduct(data);
+      dispatch(
+        addAProduct({ ...data, id: product.id, rating: parseInt(data.rating) })
+      );
+      dispatch(displayAlert({type:true, message: "Product was added successfully"}))
+      setIsVisible(false);
     },
     onError: (error) => {
-      onAddFailed(error);
+      dispatch(displayAlert({type:false, message: "Product could not be added"}))
+      console.log(error);
     },
   });
+
+  useEffect(() => {
+    if (!isVisible) {
+      reset();
+      dispatch(setEditProduct({}));
+    }
+  }, [isVisible]);
 
   return (
-    <Modal isOpen={isVisible} setIsOpen={setIsVisible} title={`${mode} product`}>
+    <Modal
+      isOpen={isVisible}
+      setIsOpen={setIsVisible}
+      title={`${mode} product`}
+    >
       <form
-        onSubmit={mode === "Edit" ? handleSubmit(onEdit) : handleSubmit(onSubmit)}
-        className="w-full shadow-[0_0_100px_0_rgba(0,0,0,0.1)] py-10 xs:px-5 rounded-xl grid gap-4"
+        onSubmit={
+          mode === "Edit" ? handleSubmit(onEdit) : handleSubmit(onSubmit)
+        }
+        className="grid grid-row grid-cols-2 gap-y-3 gap-x-4"
       >
-        
-        <Button disabled={requestLoading || editRequestLoading} children={`${mode} note`} className="ml-auto px-8" />
+        <Input
+          name="title"
+          label="Title"
+          required={true}
+          msgError={errors.title?.message}
+          register={register}
+        />
+        <Input
+          name="brand"
+          label="Author"
+          required={true}
+          msgError={errors.brand?.message}
+          register={register}
+        />
+        <Input
+          type="date"
+          name="date"
+          label="Date"
+          // required={true}
+          msgError={errors.date?.message}
+          register={register}
+        />
+        <Input
+          type="number"
+          name="rating"
+          label="Rating"
+          required={true}
+          msgError={errors.rating?.message}
+          register={register}
+        />
+        <Button
+          disabled={requestLoading || editRequestLoading}
+          children={`${mode} product`}
+          className="col-span-2 ml-auto px-8 bg-purple-400 my-2 border border-black"
+        />
       </form>
     </Modal>
   );

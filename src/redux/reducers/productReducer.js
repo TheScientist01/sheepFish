@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const INITIAL_STATE = { list: [], deleteId: null };
+const INITIAL_STATE = { list: [], productToEdit: {}, deleteId: null };
 
 export const productReducer = createSlice({
   name: "products",
@@ -9,9 +9,9 @@ export const productReducer = createSlice({
     setProducts: (state, action) => {
       state.list = action.payload;
     },
-    addProduct: (state, action) => {
+    addAProduct: (state, action) => {
       state.list = state.list?.length
-        ? [action.payload, ...state.products]
+        ? [action.payload, ...state.list]
         : action.payload;
     },
     removeProduct: (state, action) => {
@@ -19,10 +19,13 @@ export const productReducer = createSlice({
         (product) => product?.id !== action.payload
       );
     },
-    editProduct: (state, action) => {
+    editAProduct: (state, action) => {
       state.list = state.list?.map((product) =>
-        product?.id !== action.payload.id ? action.payload : product
+        product?.id === action.payload.id ? {...action.payload, rating:parseFloat(action.payload.rating)} : product
       );
+    },
+    setEditProduct: (state, action) => {
+      state.productToEdit = action.payload;
     },
     deleteProductId: (state, action) => {
       state.deleteId = action.payload;
@@ -32,13 +35,15 @@ export const productReducer = createSlice({
 
 export const {
   setProducts,
-  addProduct,
+  addAProduct,
   removeProduct,
-  editProduct,
+  editAProduct,
+  setEditProduct,
   deleteProductId,
 } = productReducer.actions;
 
 export const selectProducts = (state) => state.products.list;
+export const selectEditProduct = (state) => state.products.productToEdit;
 export const selectDeleteId = (state) => state.products.deleteId;
 
 export default productReducer.reducer;
